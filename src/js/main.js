@@ -3,13 +3,30 @@ const dataEl = document.getElementById('data');
 const headersEl = document.getElementById('headers');
 const configEl = document.getElementById('config');
 
+axios.defaults.baseURL = 'https://jsonplaceholder.typicode.com/';
+
+axios.interceptors.request.use((config) => {
+    config.headers['hello'] = 'world';
+    console.log(config);
+    return config
+})
+
+axios.interceptors.response.use((response) => {
+    console.log("sucesso");
+    return response
+}, (error) => {
+    console.log("erro");
+    return Promise.reject(error)
+})
+
 const get = async () => {
     try {
-        const response = await axios.get('https://jsonplaceholder.typicode.com/todos', {
+        const config = {
             params: {
                 _limit: 10
             }
-        });
+        }
+        const response = await axios.get('todos', config);
         renderOutput(response);
     } catch (error) {
         console.log(error);
@@ -32,36 +49,120 @@ const get = async () => {
 */
 }
 
-const post = () => {
-    console.log('post');
+const post = async() => {
+    try {
+        const data = {
+            title: 'foo',
+        }
+        const response = await axios.post('https://jsonplaceholder.typicode.com/todos', data);
+        renderOutput(response);
+    } catch (error) {
+        console.log(error);
+    }
 }
 
-const put = () => {
-    console.log('put');
+const put = async() => {
+    try {
+        const data = {
+            title: 'bar',
+            body: 'bar',
+        }
+        const response = await axios.put('https://jsonplaceholder.typicode.com/todos/1', data);
+        renderOutput(response);
+    } catch (error) {
+        console.log(error);
+    }
 }
 
-const patch = () => {
-    console.log('patch');
+const patch = async() => {
+    try {
+        const data = {
+            title: 'hello',
+        }
+        const response = await axios.patch('https://jsonplaceholder.typicode.com/todos/1', data);
+        renderOutput(response);
+    } catch (error) {
+        console.log(error);
+    }
 }
 
-const del = () => {
-    console.log('delete');
+const del = async() => {
+    try {
+        const response = await axios.delete('https://jsonplaceholder.typicode.com/todos/2');
+        renderOutput(response);
+    } catch (error) {
+        console.log(error);
+    }
 }
 
-const multiple = () => {
-    console.log('multiple');
+const multiple = async() => {
+    try {
+        const response = await axios.all([
+            axios.get('https://jsonplaceholder.typicode.com/todos/1'),
+            axios.get('https://jsonplaceholder.typicode.com/todos/2'),
+        ]);
+        console.log(response[0].data);
+        console.log(response[1].data);
+    } catch (error) {
+        console.log(error);
+    }   
 }
 
-const transform = () => {
-    console.log('transform');
+const transform = async() => {
+    try {
+        const config = {
+            params: {
+                _limit: 10
+            },
+            transformResponse: [ (data) => {
+                const payload = JSON.parse(data).map(d => {
+                    return{
+                        ...d,
+                        adrress: 'brasil',
+                    }
+                });
+
+                return payload;
+            }]
+        }
+
+        const response = await axios.get('https://jsonplaceholder.typicode.com/todos', config);
+        renderOutput(response);
+
+    } catch (error) {
+        console.log(error);
+    }
 }
 
-const errorHandling = () => {
-    console.log('errorHandling');
+const errorHandling = async() => {
+    try {
+        const config = {
+            params: {
+                _limit: 10
+            }
+        }
+        const response = await axios.get('https://jsonplaceholder.typicode.com/todosS', config);
+        renderOutput(response);
+    } catch (error) {
+        renderOutput(error.response);
+    }
 }
 
-const cancel = () => {
-    console.log('cancel');
+const cancel = async () => {
+    const controller = new AbortController();
+    try {
+        const config = {
+            params: {
+                _limit: 5
+            },
+            signal: controller.signal
+        };
+        const response = axios.get('https://jsonplaceholder.typicode.com/posts', config);
+        renderOutput(response);
+    } catch (error) {
+        console.error('Erro:', error.message);
+    }
+    controller.abort()
 }
 
 const clear = () => {
